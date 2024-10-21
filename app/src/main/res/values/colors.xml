@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="vscode_background">#EAF7FF</color> <!-- Light blue background -->
+    <color name="vscode_card_background">#D1ECFF</color> <!-- Lighter card background -->
+    <color name="vscode_text_primary">#1C3F5B</color> <!-- Darker blue for text -->
+    <color name="vscode_text_secondary">#3C77A2</color> <!-- Secondary blue for less important text -->
+    <color name="vscode_card_shadow">#A0C4E2</color> <!-- Light shadow effect for the cards -->
 </resources>

@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/vscode_background"
@@ -23,11 +24,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:textSize="18sp"
-                android:textColor="@color/vscode_text_primary"
                 android:text="WeatherDesk"
-                app:layout_constraintBottom_toBottomOf="@+id/imageView"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textColor="@color/vscode_text_primary"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/imageView" />
 
             <!-- Weather Icon -->
             <ImageView
@@ -41,17 +42,21 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!-- Day Label -->
+
+            <!-- Date Label -->
+
             <TextView
                 android:id="@+id/txtDay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textColor="@color/vscode_text_secondary"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="36dp"
                 android:text="Today"
+                android:textColor="@color/vscode_text_secondary"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/imageView" />
 
-            <!-- Date Label -->
             <TextView
                 android:id="@+id/txtDate"
                 android:layout_width="wrap_content"
@@ -90,7 +95,7 @@
 
             <!-- Forecast RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+                android:id="@+id/recyclerViewHourly"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
@@ -110,7 +115,7 @@
                 android:textColor="@color/vscode_text_primary"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewHourly" />
 
             <!-- Other Weather Info -->
             <TextView
@@ -168,11 +173,11 @@
 
             <!-- Next 5 Days RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewDaily"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
                 android:layout_marginTop="50dp"
-                android:layout_marginBottom="30dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/txtNext5Days" />

@@ -1,14 +1,14 @@
 package com.example.productslist
 
 import androidx.recyclerview.widget.DiffUtil
-import com.example.weather.model.DailyData
+import com.example.weather.model.DisplayableDailyForecast
 
-class DailyDiffUtil : DiffUtil.ItemCallback<DailyData>() {
-    override fun areItemsTheSame(oldItem: DailyData, newItem: DailyData): Boolean {
-        return oldItem.date == newItem.date
+class DailyDiffUtil : DiffUtil.ItemCallback<DisplayableDailyForecast>() {
+    override fun areItemsTheSame(oldItem: DisplayableDailyForecast, newItem: DisplayableDailyForecast): Boolean {
+        return oldItem.day == newItem.day
     }
 
-    override fun areContentsTheSame(oldItem: DailyData, newItem: DailyData): Boolean {
+    override fun areContentsTheSame(oldItem: DisplayableDailyForecast, newItem: DisplayableDailyForecast): Boolean {
         return oldItem == newItem
     }
 }

@@ -1,20 +1,30 @@
 package com.example.weather.ui.home
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.weather.MyLocationManager
 import com.example.weather.model.CurrentWeatherResponse
+import com.example.weather.model.DisplayableDailyForecast
+import com.example.weather.model.DisplayableHourlyForecast
 import com.example.weather.model.DisplayableWeatherData
 import com.example.weather.model.ForecastResponse
 import com.example.weather.repository.Repository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class HomeViewModel(private val _repo: Repository) : ViewModel() {
-    //lateinit var myLocationManager: MyLocationManager
 
     private var _currentWeatherResponse: MutableLiveData<CurrentWeatherResponse> =
         MutableLiveData<CurrentWeatherResponse>()
@@ -53,17 +63,77 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 }
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getDisplayableObject(lat: Double, lon: Double, apiKey: String): DisplayableWeatherData =
+        coroutineScope {
+            val currentWeatherDeferred = async {
+                _repo.getCurrentWeather(lat, lon, apiKey).first()
+            }
 
-//    fun getDisplayableObject(lat: Double, lon: Double, apiKey: String):DisplayableWeatherData{
-//        CoroutineScope(Dispatchers.IO).launch {
-//            getCurrentWeather(lat, lon, apiKey)
-//            getFiveDayForecast(lat, lon, apiKey)
-//            val resultCurrent = currentWeatherResponse.value
-//            val resultForecast = forecastResponse.value
-//        }
-//        return DisplayableWeatherData(forecastResponse.weather.get(0).description,
-//            )
-//    }
+            val forecastDeferred = async {
+                _repo.getFiveDayForecast(lat, lon, apiKey).first()
+            }
+
+            val currentWeather = currentWeatherDeferred.await()
+            val forecastResponse = forecastDeferred.await()
+
+            val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
+            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+            val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
+
+            // Current weather details
+            val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
+            val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
+            val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
+            val temperature = "${currentWeather.main.temp} °C"
+            val pressure = "${currentWeather.main.pressure} hPa"
+            val windSpeed = "${currentWeather.wind.speed} m/s"
+            val humidity = "${currentWeather.main.humidity}%"
+            val cloudCoverage = "${currentWeather.clouds.all}%"
+
+            // Hourly forecast (First 8 items for the current day)
+            val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
+            val hourlyForecast = forecastResponse.list
+                .filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
+                .take(8)
+                .map {
+                    DisplayableHourlyForecast(
+                        time = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).format(timeFormatter),
+                        temp = "${it.main.temp} °C",
+                        iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
+                    )
+                }
+
+            // Daily forecast (Every 8th item from each subsequent day)
+            val dailyForecast = forecastResponse.list
+                .filterIndexed { index, _ -> index % 8 == 0 }
+                .map {
+                    val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault())
+                    DisplayableDailyForecast(
+                        day = dateTime.format(dateFormatter),
+                        temp = "${it.main.temp} °C",
+                        iconUrl = "https://openweathermap.org/img/wn/01d@2x.png"
+                    )
+                }
+
+            // Return DisplayableWeatherData outside the coroutineScope block
+            DisplayableWeatherData(
+                weatherDescription = weatherDescription,
+                weatherIconUrl = weatherIconUrl,
+                currentDay = "Today",
+                currentDate = currentDay,
+                temperature = temperature,
+                locationDescription = locationDescription,
+                pressure = pressure,
+                windSpeed = windSpeed,
+                humidity = humidity,
+                cloudCoverage = cloudCoverage,
+                hourlyForecast = hourlyForecast,
+                dailyForecast = dailyForecast
+            )
+        }
+
+
 }
 
 class HomeViewModelFactory(private val _repo: Repository) : ViewModelProvider.Factory {

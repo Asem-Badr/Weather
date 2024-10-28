@@ -17,6 +17,9 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var settingsManager: SettingsManager
 
+    private var updatingWindSpeed = false
+    private var updatingTempUnit = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,13 +42,59 @@ class SettingsFragment : Fragment() {
         }
 
         binding.tempUnitGroup.setOnCheckedChangeListener { _, checkedId ->
-            val selectedTempUnit = when (checkedId) {
-                R.id.radioButtonCelsius -> "Celsius"
-                R.id.radioButtonKelvin -> "Kelvin"
-                R.id.radioButtonFahrenheit -> "Fahrenheit"
-                else -> "Celsius" // default to Celsius
+            if (!updatingTempUnit) {
+                val selectedTempUnit = when (checkedId) {
+                    R.id.radioButtonCelsius -> "Celsius"
+                    R.id.radioButtonKelvin -> "Kelvin"
+                    R.id.radioButtonFahrenheit -> "Fahrenheit"
+                    else -> "Celsius" // default to Celsius
+                }
+                settingsManager.setTemperatureUnit(selectedTempUnit)
+
+                updatingWindSpeed = true // Temporarily disable wind speed listener
+                when (selectedTempUnit) {
+                    "Celsius", "Kelvin" -> binding.windSpeedGroup.check(R.id.radioButtonMetersPerSec)
+                    "Fahrenheit" -> binding.windSpeedGroup.check(R.id.radioButtonMilesPerHour)
+                }
+                updatingWindSpeed = false
+
+                settingsManager.setUnit(
+                    when (selectedTempUnit) {
+                        "Celsius" -> "metric"
+                        "Kelvin" -> "standard"
+                        "Fahrenheit" -> "imperial"
+                        else -> "metric"
+                    }
+                )
             }
-            settingsManager.setTemperatureUnit(selectedTempUnit)
+        }
+
+        binding.windSpeedGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (!updatingWindSpeed) {
+                val selectedWindSpeedUnit = when (checkedId) {
+                    R.id.radioButtonMetersPerSec -> "Meters/Sec"
+                    R.id.radioButtonMilesPerHour -> "Miles/Hour"
+                    else -> "Meters/Sec" // default to Meters/Sec
+                }
+                settingsManager.setWindSpeedUnit(selectedWindSpeedUnit)
+
+                updatingTempUnit = true // Temporarily disable temp unit listener
+                when (selectedWindSpeedUnit) {
+                    "Meters/Sec" -> {
+                        if (binding.tempUnitGroup.checkedRadioButtonId != R.id.radioButtonCelsius &&
+                            binding.tempUnitGroup.checkedRadioButtonId != R.id.radioButtonKelvin
+                        ) {
+                            binding.tempUnitGroup.check(R.id.radioButtonCelsius)
+                        }
+                    }
+                    "Miles/Hour" -> binding.tempUnitGroup.check(R.id.radioButtonFahrenheit)
+                }
+                updatingTempUnit = false
+
+                settingsManager.setUnit(
+                    if (selectedWindSpeedUnit == "Meters/Sec") "metric" else "imperial"
+                )
+            }
         }
 
         binding.locationGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -56,16 +105,6 @@ class SettingsFragment : Fragment() {
             }
             settingsManager.setLocation(selectedLocation)
         }
-
-        binding.windSpeedGroup.setOnCheckedChangeListener { _, checkedId ->
-            val selectedWindSpeedUnit = when (checkedId) {
-                R.id.radioButtonMetersPerSec -> "Meters/Sec"
-                R.id.radioButtonMilesPerHour -> "Miles/Hour"
-                else -> "Meters/Sec" // default to Meters/Sec
-            }
-            settingsManager.setWindSpeedUnit(selectedWindSpeedUnit)
-        }
-
         return root
     }
 
@@ -74,6 +113,7 @@ class SettingsFragment : Fragment() {
         val savedTempUnit = settingsManager.getTemperatureUnit()
         val savedLocation = settingsManager.getLocation()
         val savedWindSpeedUnit = settingsManager.getWindSpeedUnit()
+        val savedUnit = settingsManager.getUnit()
 
         binding.languageGroup.check(
             when (savedLanguage) {
@@ -126,5 +166,4 @@ class SettingsFragment : Fragment() {
         // Restart the activity to apply the language change
         requireActivity().recreate()
     }
-
 }

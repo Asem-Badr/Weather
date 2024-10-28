@@ -11,6 +11,7 @@ class SettingsManager(context: Context) {
         const val TEMP_UNIT_KEY = "temperature_unit"
         const val LOCATION_KEY = "location"
         const val WIND_SPEED_KEY = "wind_speed_unit"
+        const val UNIT_KEY = "unit"
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -45,5 +46,13 @@ class SettingsManager(context: Context) {
 
     fun setWindSpeedUnit(windSpeedUnit: String) {
         sharedPreferences.edit().putString(WIND_SPEED_KEY, windSpeedUnit).apply()
+    }
+
+    fun getUnit(): String{
+        return sharedPreferences.getString(UNIT_KEY,"metric") ?: "metric"
+    }
+
+    fun setUnit(unit : String){
+        sharedPreferences.edit().putString(UNIT_KEY,unit).apply()
     }
 }

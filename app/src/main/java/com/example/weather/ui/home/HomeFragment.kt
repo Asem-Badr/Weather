@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.weather.database.LocationsDatabase
 import com.example.weather.MyLocationManager
 import com.example.weather.SettingsManager
 import com.example.weather.databinding.FragmentHomeBinding
@@ -34,9 +35,10 @@ class HomeFragment : Fragment(), LocationResultCallback {
 
     override fun onStart() {
         super.onStart()
-        myLocationManager.getActualLocation(requireActivity(), this)
+//        myLocationManager.getActualLocation(requireActivity(), this)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,7 +46,13 @@ class HomeFragment : Fragment(), LocationResultCallback {
     ): View {
         val settingsManager = SettingsManager(requireActivity())
         val homeViewModelFactory =
-            HomeViewModelFactory(Repository(WeatherApiService.RetrofitHelper, settingsManager))
+            HomeViewModelFactory(
+                Repository(
+                    WeatherApiService.RetrofitHelper,
+                    LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
+                    settingsManager
+                )
+            )
         homeViewModel = ViewModelProvider(
             requireActivity(),
             homeViewModelFactory
@@ -71,8 +79,15 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 orientation = RecyclerView.VERTICAL
             }
         }
+        myLocationManager = MyLocationManager(requireContext())
         if (settingsManager.getLocation() == "GPS") {
-            myLocationManager = MyLocationManager(requireContext())
+            myLocationManager.getFreshLocation(this)
+
+        } else if (settingsManager.getLocation() == "Map") {
+            onLocationResult(
+                myLocationManager.getLatitude().toDouble(),
+                myLocationManager.getLongitude().toDouble()
+            )
         }
 
         return root
@@ -94,9 +109,18 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 "fe475ba8548cc787edbdab799cae490c"
             )
             updateUi(value)
+            //just for testing not production
+            val settingsManager = SettingsManager(requireActivity())
+            val repo = Repository(
+                WeatherApiService.RetrofitHelper,
+                LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
+                settingsManager
+            )
+            repo.addToFav(value)
         }
 
     }
+
     fun updateUi(dto: DisplayableWeatherData) {
         binding.apply {
             // Set temperature and weather description

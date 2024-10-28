@@ -1,12 +1,16 @@
 package com.example.weather.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "locations")
 data class DisplayableWeatherData(
     val weatherDescription: String,
     val weatherIconUrl: String,
     val currentDay: String,
     val currentDate: String,
     val temperature: String,
-    val locationDescription: String,
+    @PrimaryKey val locationDescription: String,
     val pressure: String,
     val windSpeed: String,
     val humidity: String,

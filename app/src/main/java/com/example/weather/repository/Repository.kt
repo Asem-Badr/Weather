@@ -24,7 +24,7 @@ class Repository(
             lat,
             lon,
             settingsManager.getLanguage(),
-            settingsManager.getTemperatureUnit(),
+            settingsManager.getUnit(),
             appId
         )
         emit(result)
@@ -40,7 +40,7 @@ class Repository(
             lat,
             lon,
             settingsManager.getLanguage(),
-            settingsManager.getTemperatureUnit(),
+            settingsManager.getUnit(),
             appId
         )
         emit(result)

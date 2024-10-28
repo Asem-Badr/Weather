@@ -80,17 +80,16 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
             val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
             val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
             val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
-
+            val tempUnit = _repo.settingsManager.getTemperatureUnit().first()
             // Current weather details
             val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
             val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
             val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
-            val temperature = "${currentWeather.main.temp} °C"
+            val temperature = "${currentWeather.main.temp} °"+tempUnit
             val pressure = "${currentWeather.main.pressure} hPa"
-            val windSpeed = "${currentWeather.wind.speed} m/s"
+            val windSpeed = "${currentWeather.wind.speed} "+_repo.settingsManager.getWindSpeedUnit()
             val humidity = "${currentWeather.main.humidity}%"
-            val cloudCoverage = "${currentWeather.clouds.all}%"
-
+            val cloudCoverage = "${currentWeather.clouds.all}"
             // Hourly forecast (First 8 items for the current day)
             val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
             val hourlyForecast = forecastResponse.list
@@ -99,7 +98,7 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 .map {
                     DisplayableHourlyForecast(
                         time = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).format(timeFormatter),
-                        temp = "${it.main.temp} °C",
+                        temp = "${it.main.temp} °"+tempUnit,
                         iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
                     )
                 }
@@ -111,8 +110,8 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                     val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault())
                     DisplayableDailyForecast(
                         day = dateTime.format(dateFormatter),
-                        temp = "${it.main.temp} °C",
-                        iconUrl = "https://openweathermap.org/img/wn/01d@2x.png"
+                        temp = "${it.main.temp} °"+tempUnit,
+                        iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
                     )
                 }
 

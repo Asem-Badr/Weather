@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
@@ -23,6 +24,29 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.location.FusedLocationProviderClient
 
 class MyLocationManager(val context: Context) {
+
+    companion object {
+        const val PREFERENCES_NAME = "location_preferences"
+        const val LONGITUDE_KEY = "language"
+        const val LATITUDE_KEY = "temperature_unit"
+    }
+
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+    fun getLongitude(): String {
+        return sharedPreferences.getString(LONGITUDE_KEY, "0") ?: "0"
+    }
+
+    fun setLongitude(longitude: Double) {
+        sharedPreferences.edit().putString(LONGITUDE_KEY, longitude.toString()).apply()
+    }
+    fun getLatitude(): String {
+        return sharedPreferences.getString(LATITUDE_KEY, "0") ?: "0"
+    }
+
+    fun setLatitude(latitude: Double) {
+        sharedPreferences.edit().putString(LATITUDE_KEY, latitude.toString()).apply()
+    }
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     val My_LOCATION_PERMISSION_ID = 5005
     fun getActualLocation(activity: Activity, callback: LocationResultCallback) {

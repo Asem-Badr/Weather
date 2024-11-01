@@ -20,4 +20,13 @@
     <string name="wind_speed_unit">وحدة سرعة الرياح</string>
     <string name="meters_per_sec">متر/ثانية</string>
     <string name="miles_per_hour">ميل/ساعة</string>
+    <string name="nextFiveDays">الخمس أيام القادمة:</string>
+    <string name="dailyDetails">تفاصيل اليوم:</string>
+    <string name="changeLocation">غير اليوم</string>
+    <string name="remove">إحذف</string>
+    <string name="pressure">الضغط</string>
+    <string name="humidity">الرطوبة</string>
+    <string name="windSpeed">سرعة الرياح</string>
+    <string name="clouds">الغيوم</string>
+    <string name="updateLocation">حدث موقعك</string>
 </resources>

@@ -23,4 +23,10 @@
     <string name="nextFiveDays">Next Five Days:</string>
     <string name="dailyDetails">Daily Details</string>
     <string name="changeLocation">Change Location</string>
+    <string name="remove">Remove</string>
+    <string name="pressure">Pressure</string>
+    <string name="humidity">Humidity:</string>
+    <string name="windSpeed">Wind Speed</string>
+    <string name="clouds">Clouds</string>
+    <string name="updateLocation">Refresh Location</string>
 </resources>

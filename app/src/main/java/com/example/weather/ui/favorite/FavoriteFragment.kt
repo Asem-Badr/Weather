@@ -53,8 +53,11 @@ class FavoriteFragment : Fragment() {
         ).get(FavoriteViewModel::class.java)
         recyclerViewFav = binding.recyclerViewFav
 
-        recyclerAdapterFav = RecyclerAdapterFav(){ weather->
-            Toast.makeText(requireContext(),"card pressed",Toast.LENGTH_SHORT).show()
+        recyclerAdapterFav = RecyclerAdapterFav(
+            { weather ->
+                favoriteViewModel.removeFromFav(weather)
+            },
+        ) { weather ->
             settingsManager.setLocation("Favorite")
             myLocationManager.setWeatherObject(weather.locationDescription)
             findNavController().navigate(R.id.navigation_home)
@@ -74,7 +77,7 @@ class FavoriteFragment : Fragment() {
         binding.floatingActionButton.setOnClickListener {
             //add items to favorite list logic
             val intent = Intent(requireContext(), MapActivity::class.java)
-            intent.putExtra("type","Favorite")
+            intent.putExtra("type", "Favorite")
             settingsManager.setLocation("NewFavorite")
             startActivity(intent)
             findNavController().navigate(R.id.navigation_home)

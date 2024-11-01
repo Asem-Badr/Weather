@@ -54,14 +54,14 @@ class MyLocationManager(val context: Context) {
         sharedPreferences.edit().putString(GPS_LONG_KEY, longitude.toString()).apply()
     }
     fun getGpsLongitude(): String {
-        return sharedPreferences.getString(GPS_LONG_KEY, "0") ?: "0"
+        return sharedPreferences.getString(GPS_LONG_KEY, "0.0") ?: "0.0"
     }
 
     fun setGpsLatitude(latitude: Double) {
         sharedPreferences.edit().putString(GPS_LAT_KEY, latitude.toString()).apply()
     }
     fun getGpsLatitude(): String {
-        return sharedPreferences.getString(GPS_LAT_KEY, "0") ?: "0"
+        return sharedPreferences.getString(GPS_LAT_KEY, "0.0") ?: "0.0"
     }
 
     fun setFavoriteLongitude(longitude: Double) {

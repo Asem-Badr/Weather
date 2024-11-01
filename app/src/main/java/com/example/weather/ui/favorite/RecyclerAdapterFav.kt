@@ -11,7 +11,7 @@ import com.example.weather.model.DisplayableDailyForecast
 import com.example.weather.model.DisplayableWeatherData
 
 
-class RecyclerAdapterFav(var myListener: (DisplayableWeatherData) -> Unit) :
+class RecyclerAdapterFav(var btnHandler: (DisplayableWeatherData)->Unit,var myListener: (DisplayableWeatherData) -> Unit) :
     ListAdapter<DisplayableWeatherData, RecyclerAdapterFav.ViewHolder>(FavDiffUtil()) {
     lateinit var binding: CardFavLocationsBinding
 
@@ -26,6 +26,9 @@ class RecyclerAdapterFav(var myListener: (DisplayableWeatherData) -> Unit) :
         holder.binding.txtCountry.text = current.locationDescription
         holder.binding.cardFav.setOnClickListener{
             myListener.invoke(current)
+        }
+        holder.binding.btnRemoveFromFav.setOnClickListener{
+            btnHandler.invoke(current);
         }
     }
 

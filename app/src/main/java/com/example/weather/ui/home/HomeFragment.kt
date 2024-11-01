@@ -24,6 +24,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment(), LocationResultCallback {
     lateinit var recyclerAdapterHourlyData: RecyclerAdapterHourlyData
@@ -32,9 +33,9 @@ class HomeFragment : Fragment(), LocationResultCallback {
     lateinit var recyclerViewDailyData: RecyclerView
     lateinit var homeViewModel: HomeViewModel
     private var _binding: FragmentHomeBinding? = null
-    lateinit var myLocationManager : MyLocationManager
+    lateinit var myLocationManager: MyLocationManager
     private val binding get() = _binding!!
-    lateinit var settingsManager :SettingsManager
+    lateinit var settingsManager: SettingsManager
 
     override fun onStart() {
         super.onStart()
@@ -48,6 +49,7 @@ class HomeFragment : Fragment(), LocationResultCallback {
         super.onResume()
         refreshData()
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -90,6 +92,12 @@ class HomeFragment : Fragment(), LocationResultCallback {
             }
         }
 
+        binding.btnUpdateLocation.setOnClickListener{
+            settingsManager.setLocation("GPS")
+            myLocationManager.setGpsLongitude(0.0)
+            myLocationManager.setGpsLatitude(0.0)
+            refreshData()
+        }
 
         return root
     }
@@ -105,28 +113,19 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 "fe475ba8548cc787edbdab799cae490c"
             )
             var location_settings = settingsManager.getLocation()
-            if(location_settings == "GPS"){
+            if (location_settings == "GPS") {
                 //caching the locations so that it will not fetch new location every time
                 myLocationManager.setGpsLongitude(longitude)
                 myLocationManager.setGpsLatitude(latitude)
-            }else if (location_settings == "Map"){
+            } else if (location_settings == "Map") {
 
-            }else if (location_settings == "Favorite"){
+            } else if (location_settings == "Favorite") {
                 settingsManager.setLocation("Gps")
-            }else if (location_settings == "NewFavorite"){
+            } else if (location_settings == "NewFavorite") {
                 settingsManager.setLocation("Gps")
                 homeViewModel.addToFav(value)
             }
             updateUi(value)
-            //just for testing not production
-//            val settingsManager = SettingsManager(requireActivity())
-//            val repo = Repository(
-//                WeatherApiService.RetrofitHelper,
-//                LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
-//                settingsManager
-//            )
-            //this is for debug only
-            //repo.addToFav(value)
         }
 
     }
@@ -164,28 +163,41 @@ class HomeFragment : Fragment(), LocationResultCallback {
 
         when (locationSetting) {
             "GPS" -> {
-                if (myLocationManager.getGpsLongitude() != "0") {
+                if (myLocationManager.getGpsLongitude() != "0.0") {
                     onLocationResult(
                         myLocationManager.getGpsLatitude().toDouble(),
                         myLocationManager.getGpsLongitude().toDouble()
                     )
                 } else {
-                    myLocationManager.getActualLocation(requireActivity(),this)  // Only fetch fresh GPS if needed
+                    myLocationManager.getActualLocation(
+                        requireActivity(),
+                        this
+                    )  // Only fetch fresh GPS if needed
                 }
             }
+
             "Map" -> onLocationResult(
                 myLocationManager.getLatitude().toDouble(),
                 myLocationManager.getLongitude().toDouble()
             )
-            "Favorite"-> {
+
+            "Favorite" -> {
                 settingsManager.setLocation("GPS")
                 val weatherKey = myLocationManager.getWeatherObject()
-                homeViewModel.getLocationByDescription(weatherKey)
+                var weatherObject = homeViewModel.getLocationByDescription(weatherKey)
                 homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
-                    updateUi(it)
+                    if(isPastUpdateTime(it.timeStamp)){
+                        //fetch new data as the stored are old and store the new in database
+                        onLocationResult(it.latitude,it.longitude)
+                    }
+                    else{
+                        //review the pre existing data
+                        updateUi(it)
+                    }
                 }
             }
-            "NewFavorite"->{
+
+            "NewFavorite" -> {
                 onLocationResult(
                     myLocationManager.getFavoriteLatitude().toDouble(),
                     myLocationManager.getFavoriteLongitude().toDouble()
@@ -193,5 +205,12 @@ class HomeFragment : Fragment(), LocationResultCallback {
 
             }
         }
+    }
+
+    fun isPastUpdateTime(givenTimestamp: Long): Boolean {
+        var givenTimestampInMillis = givenTimestamp * 1000
+        val threeHoursInMillis = TimeUnit.HOURS.toMillis(3)
+        val currentTime = System.currentTimeMillis()
+        return currentTime > (givenTimestampInMillis + threeHoursInMillis)
     }
 }

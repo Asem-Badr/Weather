@@ -96,17 +96,23 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
         val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
         val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
         val tempUnit = _repo.settingsManager.getTemperatureUnit().first()
+        var windSpeedUnit = _repo.settingsManager.getWindSpeedUnit()
+        windSpeedUnit = if(windSpeedUnit == "Meters/Sec") "M/S" else "Mile/H"
+        if(_repo.settingsManager.getLanguage()=="ar"){
+            if(windSpeedUnit == "M/S")windSpeedUnit="م/ث" else windSpeedUnit="ميل/س"
+        }
         val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
         val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
         val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
         val temperature = "${currentWeather.main.temp} °"+tempUnit
-        val pressure = "${currentWeather.main.pressure} hPa"
-        val windSpeed = "${currentWeather.wind.speed} "+_repo.settingsManager.getWindSpeedUnit()
+        var pressureUnit = if(_repo.settingsManager.getLanguage()=="ar")"مللي بار" else "hPa"
+        val pressure = "${currentWeather.main.pressure}"+pressureUnit
+        val windSpeed = "${currentWeather.wind.speed} "+ windSpeedUnit
         val humidity = "${currentWeather.main.humidity}%"
-        val cloudCoverage = "${currentWeather.clouds.all}"
+        val cloudCoverage = "${currentWeather.clouds.all}%"
         val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
         val hourlyForecast = forecastResponse.list
-            .filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
+            //.filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
             .take(8)
             .map {
                 DisplayableHourlyForecast(
@@ -139,7 +145,10 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
             humidity = humidity,
             cloudCoverage = cloudCoverage,
             hourlyForecast = hourlyForecast,
-            dailyForecast = dailyForecast
+            dailyForecast = dailyForecast,
+            latitude = currentWeather.coord.lat,
+            longitude = currentWeather.coord.lon,
+            timeStamp = currentWeather.dt
         )
     }
 

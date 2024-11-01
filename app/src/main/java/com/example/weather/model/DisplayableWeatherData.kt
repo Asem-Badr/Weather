@@ -16,7 +16,10 @@ data class DisplayableWeatherData(
     val humidity: String,
     val cloudCoverage: String,
     val hourlyForecast: List<DisplayableHourlyForecast>,
-    val dailyForecast: List<DisplayableDailyForecast>
+    val dailyForecast: List<DisplayableDailyForecast>,
+    val latitude:Double,
+    val longitude:Double,
+    val timeStamp : Long
 )
 
 data class DisplayableHourlyForecast(

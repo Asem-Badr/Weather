@@ -94,62 +94,65 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
 
             val currentWeather = currentWeatherDeferred.await()
             val forecastResponse = forecastDeferred.await()
+            constructDisplayableWeatherData(currentWeather,forecastResponse)
 
-            val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
-            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-            val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
-            val tempUnit = _repo.settingsManager.getTemperatureUnit().first()
-            // Current weather details
-            val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
-            val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
-            val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
-            val temperature = "${currentWeather.main.temp} °"+tempUnit
-            val pressure = "${currentWeather.main.pressure} hPa"
-            val windSpeed = "${currentWeather.wind.speed} "+_repo.settingsManager.getWindSpeedUnit()
-            val humidity = "${currentWeather.main.humidity}%"
-            val cloudCoverage = "${currentWeather.clouds.all}"
-            // Hourly forecast (First 8 items for the current day)
-            val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
-            val hourlyForecast = forecastResponse.list
-                .filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
-                .take(8)
-                .map {
-                    DisplayableHourlyForecast(
-                        time = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).format(timeFormatter),
-                        temp = "${it.main.temp} °"+tempUnit,
-                        iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
-                    )
-                }
-
-            // Daily forecast (Every 8th item from each subsequent day)
-            val dailyForecast = forecastResponse.list
-                .filterIndexed { index, _ -> index % 8 == 0 }
-                .map {
-                    val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault())
-                    DisplayableDailyForecast(
-                        day = dateTime.format(dateFormatter),
-                        temp = "${it.main.temp} °"+tempUnit,
-                        iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
-                    )
-                }
-
-            // Return DisplayableWeatherData outside the coroutineScope block
-            DisplayableWeatherData(
-                weatherDescription = weatherDescription,
-                weatherIconUrl = weatherIconUrl,
-                currentDay = "Today",
-                currentDate = currentDay,
-                temperature = temperature,
-                locationDescription = locationDescription,
-                pressure = pressure,
-                windSpeed = windSpeed,
-                humidity = humidity,
-                cloudCoverage = cloudCoverage,
-                hourlyForecast = hourlyForecast,
-                dailyForecast = dailyForecast
-            )
         }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun constructDisplayableWeatherData(currentWeather: CurrentWeatherResponse, forecastResponse : ForecastResponse):DisplayableWeatherData{
+        val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
+        val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
+        val tempUnit = _repo.settingsManager.getTemperatureUnit().first()
+        // Current weather details
+        val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
+        val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
+        val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
+        val temperature = "${currentWeather.main.temp} °"+tempUnit
+        val pressure = "${currentWeather.main.pressure} hPa"
+        val windSpeed = "${currentWeather.wind.speed} "+_repo.settingsManager.getWindSpeedUnit()
+        val humidity = "${currentWeather.main.humidity}%"
+        val cloudCoverage = "${currentWeather.clouds.all}"
+        // Hourly forecast (First 8 items for the current day)
+        val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
+        val hourlyForecast = forecastResponse.list
+            .filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
+            .take(8)
+            .map {
+                DisplayableHourlyForecast(
+                    time = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).format(timeFormatter),
+                    temp = "${it.main.temp} °"+tempUnit,
+                    iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
+                )
+            }
 
+        // Daily forecast (Every 8th item from each subsequent day)
+        val dailyForecast = forecastResponse.list
+            .filterIndexed { index, _ -> index % 8 == 0 }
+            .map {
+                val dateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault())
+                DisplayableDailyForecast(
+                    day = dateTime.format(dateFormatter),
+                    temp = "${it.main.temp} °"+tempUnit,
+                    iconUrl = "https://openweathermap.org/img/wn/${it.weather.firstOrNull()?.icon}@2x.png"
+                )
+            }
+
+        // Return DisplayableWeatherData outside the coroutineScope block
+        return DisplayableWeatherData(
+            weatherDescription = weatherDescription,
+            weatherIconUrl = weatherIconUrl,
+            currentDay = "Today",
+            currentDate = currentDay,
+            temperature = temperature,
+            locationDescription = locationDescription,
+            pressure = pressure,
+            windSpeed = windSpeed,
+            humidity = humidity,
+            cloudCoverage = cloudCoverage,
+            hourlyForecast = hourlyForecast,
+            dailyForecast = dailyForecast
+        )
+    }
 
 }
 

@@ -33,6 +33,8 @@ class MyLocationManager(val context: Context) {
         const val WEATHER_OBJECT_KEY = "weather"
         const val GPS_LONG_KEY = "gps_longitude_key"
         const val GPS_LAT_KEY = "gps_latitude_key"
+        const val Favorite_LONG_KEY = "favorite_longitude_key"
+        const val Favorite_LAT_KEY = "favorite_latitude_key"
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -60,6 +62,20 @@ class MyLocationManager(val context: Context) {
     }
     fun getGpsLatitude(): String {
         return sharedPreferences.getString(GPS_LAT_KEY, "0") ?: "0"
+    }
+
+    fun setFavoriteLongitude(longitude: Double) {
+        sharedPreferences.edit().putString(Favorite_LONG_KEY, longitude.toString()).apply()
+    }
+    fun getFavoriteLongitude(): String {
+        return sharedPreferences.getString(Favorite_LONG_KEY, "0") ?: "0"
+    }
+
+    fun setFavoriteLatitude(latitude: Double) {
+        sharedPreferences.edit().putString(Favorite_LAT_KEY, latitude.toString()).apply()
+    }
+    fun getFavoriteLatitude(): String {
+        return sharedPreferences.getString(Favorite_LAT_KEY, "0") ?: "0"
     }
 
     fun setLatitude(latitude: Double) {

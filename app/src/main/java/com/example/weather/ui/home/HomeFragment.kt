@@ -21,6 +21,8 @@ import com.example.weather.model.DisplayableWeatherData
 import com.example.weather.network.WeatherApiService
 import com.example.weather.repository.Repository
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(), LocationResultCallback {
@@ -109,6 +111,11 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 myLocationManager.setGpsLatitude(latitude)
             }else if (location_settings == "Map"){
 
+            }else if (location_settings == "Favorite"){
+                settingsManager.setLocation("Gps")
+            }else if (location_settings == "NewFavorite"){
+                settingsManager.setLocation("Gps")
+                homeViewModel.addToFav(value)
             }
             updateUi(value)
             //just for testing not production
@@ -163,21 +170,27 @@ class HomeFragment : Fragment(), LocationResultCallback {
                         myLocationManager.getGpsLongitude().toDouble()
                     )
                 } else {
-                    myLocationManager.getFreshLocation(this)  // Only fetch fresh GPS if needed
+                    myLocationManager.getActualLocation(requireActivity(),this)  // Only fetch fresh GPS if needed
                 }
             }
             "Map" -> onLocationResult(
                 myLocationManager.getLatitude().toDouble(),
                 myLocationManager.getLongitude().toDouble()
             )
-            "Favorite" -> {
+            "Favorite"-> {
                 settingsManager.setLocation("GPS")
                 val weatherKey = myLocationManager.getWeatherObject()
                 homeViewModel.getLocationByDescription(weatherKey)
                 homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
                     updateUi(it)
-                    homeViewModel.addToFav(it)
                 }
+            }
+            "NewFavorite"->{
+                onLocationResult(
+                    myLocationManager.getFavoriteLatitude().toDouble(),
+                    myLocationManager.getFavoriteLongitude().toDouble()
+                )
+
             }
         }
     }

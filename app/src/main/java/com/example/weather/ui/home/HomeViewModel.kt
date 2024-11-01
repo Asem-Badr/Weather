@@ -44,13 +44,6 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
     }
     val text: LiveData<String> = _text
 
-    // moving this logic here requires context
-//    fun getUserLocationSelection(){
-//        if (_repo.settingsManager.getLocation() == "GPS") {
-//            myLocationManager = MyLocationManager()
-//        }
-//    }
-
     fun getCurrentWeather(lat: Double, lon: Double, apiKey: String) {
         CoroutineScope(Dispatchers.IO).launch {
             val result = _repo.getCurrentWeather(lat, lon, apiKey)
@@ -103,7 +96,6 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
         val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
         val currentDay = ZonedDateTime.now(ZoneId.systemDefault()).format(dateFormatter)
         val tempUnit = _repo.settingsManager.getTemperatureUnit().first()
-        // Current weather details
         val weatherDescription = currentWeather.weather.firstOrNull()?.description.orEmpty()
         val weatherIconUrl = "https://openweathermap.org/img/wn/${currentWeather.weather.firstOrNull()?.icon}@2x.png"
         val locationDescription = "${currentWeather.name}, ${currentWeather.sys.country}"
@@ -112,7 +104,6 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
         val windSpeed = "${currentWeather.wind.speed} "+_repo.settingsManager.getWindSpeedUnit()
         val humidity = "${currentWeather.main.humidity}%"
         val cloudCoverage = "${currentWeather.clouds.all}"
-        // Hourly forecast (First 8 items for the current day)
         val currentDayStart = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDate()
         val hourlyForecast = forecastResponse.list
             .filter { ZonedDateTime.ofInstant(Instant.ofEpochSecond(it.dt), ZoneId.systemDefault()).toLocalDate() == currentDayStart }
@@ -125,7 +116,6 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 )
             }
 
-        // Daily forecast (Every 8th item from each subsequent day)
         val dailyForecast = forecastResponse.list
             .filterIndexed { index, _ -> index % 8 == 0 }
             .map {
@@ -137,7 +127,6 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 )
             }
 
-        // Return DisplayableWeatherData outside the coroutineScope block
         return DisplayableWeatherData(
             weatherDescription = weatherDescription,
             weatherIconUrl = weatherIconUrl,

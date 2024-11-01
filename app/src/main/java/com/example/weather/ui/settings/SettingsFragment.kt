@@ -39,6 +39,7 @@ class SettingsFragment : Fragment() {
             startActivity(intent)
         }
         updateChangeLocationButtonVisibility()
+        setLocale(settingsManager.getLanguage())
 
         binding.languageGroup.setOnCheckedChangeListener { _, checkedId ->
             val selectedLanguage = when (checkedId) {
@@ -179,15 +180,14 @@ class SettingsFragment : Fragment() {
 
     private fun setLocale(languageCode: String) {
         val locale = Locale(languageCode)
-        Locale.setDefault(locale)
-
-        val config = Configuration()
-        config.setLocale(locale)
-
-        // Update the configuration for the current resources
-        requireActivity().resources.updateConfiguration(config, requireActivity().resources.displayMetrics)
-
-        // Restart the activity to apply the language change
-        requireActivity().recreate()
+        val currentLocale = requireActivity().resources.configuration.locales[0]
+        if (currentLocale.language != languageCode) {
+            Locale.setDefault(locale)
+            val config = Configuration()
+            config.setLocale(locale)
+            requireActivity().resources.updateConfiguration(config, requireActivity().resources.displayMetrics)
+            requireActivity().recreate()
+        }
     }
+
 }

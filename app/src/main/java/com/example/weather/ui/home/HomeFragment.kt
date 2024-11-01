@@ -20,9 +20,6 @@ import com.example.weather.databinding.FragmentHomeBinding
 import com.example.weather.model.DisplayableWeatherData
 import com.example.weather.network.WeatherApiService
 import com.example.weather.repository.Repository
-import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -120,9 +117,10 @@ class HomeFragment : Fragment(), LocationResultCallback {
             } else if (location_settings == "Map") {
 
             } else if (location_settings == "Favorite") {
-                settingsManager.setLocation("Gps")
+                //homeViewModel.addToFav(value)// update the stored data with new one
+                settingsManager.setLocation("GPS")
             } else if (location_settings == "NewFavorite") {
-                settingsManager.setLocation("Gps")
+                settingsManager.setLocation("GPS")
                 homeViewModel.addToFav(value)
             }
             updateUi(value)
@@ -202,7 +200,7 @@ class HomeFragment : Fragment(), LocationResultCallback {
                     myLocationManager.getFavoriteLatitude().toDouble(),
                     myLocationManager.getFavoriteLongitude().toDouble()
                 )
-
+                //settingsManager.setLocation("GPS")
             }
         }
     }

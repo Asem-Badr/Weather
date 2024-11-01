@@ -63,7 +63,7 @@ class MapActivity : AppCompatActivity() {
 
         // Button to show coordinates
         findViewById<Button>(R.id.show_coordinates_button).setOnClickListener {
-            Toast.makeText(this, "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT).show()
             myLocationManager.setLongitude(longitude)
             myLocationManager.setLatitude(latitude)
             finish()

@@ -56,4 +56,8 @@ class Repository(
     suspend fun removeFromFav(location: DisplayableWeatherData) {
         local.delete(location)
     }
+
+    suspend fun searchForWeather(location: String): Flow<DisplayableWeatherData?> {
+        return local.getLocationByDescription(location)
+    }
 }

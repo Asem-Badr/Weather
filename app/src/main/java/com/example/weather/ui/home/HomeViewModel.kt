@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.weather.model.CurrentWeatherResponse
 import com.example.weather.model.DisplayableDailyForecast
 import com.example.weather.model.DisplayableHourlyForecast
@@ -33,6 +34,10 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
     private var _forecastResponse: MutableLiveData<ForecastResponse> =
         MutableLiveData<ForecastResponse>()
     val forecastResponse: LiveData<ForecastResponse> = _forecastResponse
+
+    private var _favorite_object: MutableLiveData<DisplayableWeatherData> =
+        MutableLiveData<DisplayableWeatherData>()
+    val favoriteObject: LiveData<DisplayableWeatherData> = _favorite_object
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is home Fragment"
@@ -61,6 +66,19 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 .collect {
                     _forecastResponse.postValue(it)
                 }
+        }
+    }
+    fun getLocationByDescription(location : String){
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = _repo.searchForWeather(location)
+                .collect{
+                    _favorite_object.postValue(it)
+                }
+        }
+    }
+    fun addToFav(location: DisplayableWeatherData){
+        viewModelScope.launch(Dispatchers.IO) {
+            _repo.addToFav(location)
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)

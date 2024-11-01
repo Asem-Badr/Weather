@@ -20,6 +20,7 @@ import com.example.weather.databinding.FragmentHomeBinding
 import com.example.weather.model.DisplayableWeatherData
 import com.example.weather.network.WeatherApiService
 import com.example.weather.repository.Repository
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(), LocationResultCallback {
@@ -29,22 +30,31 @@ class HomeFragment : Fragment(), LocationResultCallback {
     lateinit var recyclerViewDailyData: RecyclerView
     lateinit var homeViewModel: HomeViewModel
     private var _binding: FragmentHomeBinding? = null
-    lateinit var myLocationManager: MyLocationManager
+    lateinit var myLocationManager : MyLocationManager
     private val binding get() = _binding!!
-
+    lateinit var settingsManager :SettingsManager
 
     override fun onStart() {
         super.onStart()
 //        myLocationManager.getActualLocation(requireActivity(), this)
+        myLocationManager = MyLocationManager(requireContext())
+//        if(myLocationManager.getGpsLongitude()== "0"){
+//            myLocationManager.getFreshLocation(this)
+//        }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onResume() {
+        super.onResume()
+        refreshData()
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val settingsManager = SettingsManager(requireActivity())
+        settingsManager = SettingsManager(requireActivity())
         val homeViewModelFactory =
             HomeViewModelFactory(
                 Repository(
@@ -79,44 +89,45 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 orientation = RecyclerView.VERTICAL
             }
         }
-        myLocationManager = MyLocationManager(requireContext())
-        if (settingsManager.getLocation() == "GPS") {
-            myLocationManager.getFreshLocation(this)
 
-        } else if (settingsManager.getLocation() == "Map") {
-            onLocationResult(
-                myLocationManager.getLatitude().toDouble(),
-                myLocationManager.getLongitude().toDouble()
-            )
-        }
 
         return root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+//    override fun onDestroyView() {
+//        super.onDestroyView()
+//        _binding = null
+//    }
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onLocationResult(latitude: Double, longitude: Double) {
-        Toast.makeText(requireContext(), "long: ${longitude}, lat:${latitude}", Toast.LENGTH_SHORT)
-            .show()
+//        Toast.makeText(requireContext(), "long: ${longitude}, lat:${latitude}", Toast.LENGTH_SHORT) .show()
         lifecycleScope.launch {
             var value = homeViewModel.getDisplayableObject(
                 latitude,
                 longitude,
                 "fe475ba8548cc787edbdab799cae490c"
             )
+            var location_settings = settingsManager.getLocation()
+            if(location_settings == "GPS"){
+                //caching the locations so that it will not fetch new location every time
+                myLocationManager.setGpsLongitude(longitude)
+                myLocationManager.setGpsLatitude(latitude)
+            }else if (location_settings == "Map"){
+
+            }
             updateUi(value)
             //just for testing not production
-            val settingsManager = SettingsManager(requireActivity())
-            val repo = Repository(
-                WeatherApiService.RetrofitHelper,
-                LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
-                settingsManager
-            )
-            repo.addToFav(value)
+//            val settingsManager = SettingsManager(requireActivity())
+//            val repo = Repository(
+//                WeatherApiService.RetrofitHelper,
+//                LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
+//                settingsManager
+//            )
+            //this is for debug only
+            //repo.addToFav(value)
         }
 
     }
@@ -147,4 +158,35 @@ class HomeFragment : Fragment(), LocationResultCallback {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun refreshData() {
+        myLocationManager = MyLocationManager(requireContext())
+        val locationSetting = settingsManager.getLocation()
+
+        when (locationSetting) {
+            "GPS" -> {
+                if (myLocationManager.getGpsLongitude() != "0") {
+                    onLocationResult(
+                        myLocationManager.getGpsLatitude().toDouble(),
+                        myLocationManager.getGpsLongitude().toDouble()
+                    )
+                } else {
+                    myLocationManager.getFreshLocation(this)  // Only fetch fresh GPS if needed
+                }
+            }
+            "Map" -> onLocationResult(
+                myLocationManager.getLatitude().toDouble(),
+                myLocationManager.getLongitude().toDouble()
+            )
+            "Favorite" -> {
+                settingsManager.setLocation("GPS")
+                val weatherKey = myLocationManager.getWeatherObject()
+                homeViewModel.getLocationByDescription(weatherKey)
+                homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
+                    updateUi(it)
+                    homeViewModel.addToFav(it)
+                }
+            }
+        }
+    }
 }

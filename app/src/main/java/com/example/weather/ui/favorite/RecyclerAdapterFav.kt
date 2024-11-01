@@ -2,6 +2,7 @@ package com.example.weather.ui.favorite
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.productslist.FavDiffUtil
@@ -10,7 +11,7 @@ import com.example.weather.model.DisplayableDailyForecast
 import com.example.weather.model.DisplayableWeatherData
 
 
-class RecyclerAdapterFav() :
+class RecyclerAdapterFav(var myListener: (DisplayableWeatherData) -> Unit) :
     ListAdapter<DisplayableWeatherData, RecyclerAdapterFav.ViewHolder>(FavDiffUtil()) {
     lateinit var binding: CardFavLocationsBinding
 
@@ -23,6 +24,10 @@ class RecyclerAdapterFav() :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val current: DisplayableWeatherData = getItem(position)
         holder.binding.txtCountry.text = current.locationDescription
+        holder.binding.cardFav.setOnClickListener{
+            //TODO move to home screen with the correct longitude and latitude
+            myListener.invoke(current)
+        }
     }
 
     class ViewHolder(var binding: CardFavLocationsBinding) : RecyclerView.ViewHolder(binding.root)

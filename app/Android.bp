@@ -1,0 +1,87 @@
+// Android.bp
+android_app {
+    name: "WeatherApp",
+    srcs: [
+        "src/**/*.java",
+        "src/**/*.kt",
+    ],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    compile_sdk_version: "34",
+    min_sdk_version: "24",
+    target_sdk_version: "34",
+    version_code: "1",
+    version_name: "1.0",
+    certificate: "platform",
+
+    compile_options: {
+        source_compatibility: "1.8",
+        target_compatibility: "1.8",
+    },
+    kotlin_options: {
+        jvm_target: "1.8",
+    },
+    build_features: {
+        view_binding: true,
+    },
+
+
+    build_types: {
+        release: {
+            minify_enabled: false,
+            proguard_files: [
+                "proguard-android-optimize.txt",
+                "proguard-rules.pro",
+            ],
+        },
+    },
+
+    static_libs: [
+        "androidx.core:core-ktx",
+        "androidx.appcompat:appcompat",
+        "com.google.android.material:material",
+        "androidx.constraintlayout:constraintlayout",
+        "androidx.lifecycle:lifecycle-livedata-ktx",
+        "androidx.lifecycle:lifecycle-viewmodel-ktx",
+        "androidx.navigation:navigation-fragment-ktx",
+        "androidx.navigation:navigation-ui-ktx",
+        "androidx.legacy:legacy-support-v4",
+        "androidx.fragment:fragment-ktx",
+        "androidx.activity:activity",
+        "androidx.preference:preference-ktx",
+        "androidx.room:room-runtime",
+        "androidx.room:room-ktx",
+        "com.github.bumptech.glide:glide",
+        "androidx.lifecycle:lifecycle-viewmodel-ktx",
+        "androidx.lifecycle:lifecycle-livedata-ktx",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+        "com.google.android.gms:play-services-location",
+        "org.osmdroid:osmdroid-android",
+        "androidx.work:work-runtime-ktx",
+        "com.google.code.gson:gson",
+        "com.squareup.retrofit2:retrofit",
+        "com.squareup.retrofit2:converter-gson",
+    ],
+
+    test_libs: [
+        "junit:junit",
+    ],
+    android_test_libs: [
+        "androidx.test.ext:junit",
+        "androidx.test.espresso:espresso-core",
+    ],
+
+    annotation_processor: [
+        "com.github.bumptech.glide:compiler",
+        "androidx.room:room-compiler",
+    ],
+
+    kotlin_annotation_processor: [
+        "androidx.room:room-compiler",
+    ],
+
+    java_import {
+        name: "retrofit",
+        jars : ["src_libs/"]
+    }
+}

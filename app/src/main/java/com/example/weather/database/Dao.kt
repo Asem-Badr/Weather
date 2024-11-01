@@ -13,6 +13,9 @@ interface Dao {
     @Query("Select * from locations")
     fun getFavLocations() : Flow<List<DisplayableWeatherData>>
 
+    @Query("SELECT * FROM locations WHERE locationDescription = :locationDescription")
+    fun getLocationByDescription(locationDescription: String): Flow<DisplayableWeatherData?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(location : DisplayableWeatherData): Long
 

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.weather.MapActivity
 import com.example.weather.R
 import com.example.weather.SettingsManager
@@ -109,6 +110,7 @@ class SettingsFragment : Fragment() {
             if(selectedLocation == "Map"){
                 val intent = Intent(requireContext(), MapActivity::class.java)
                 startActivity(intent)
+                findNavController().navigate(R.id.navigation_home)
             }
         }
         return root

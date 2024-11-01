@@ -1,18 +1,25 @@
 package com.example.weather.ui.favorite
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.weather.MapActivity
+import com.example.weather.MyLocationManager
+import com.example.weather.R
 import com.example.weather.database.LocationsDatabase
 import com.example.weather.SettingsManager
 import com.example.weather.databinding.FragmentFavoriteBinding
 import com.example.weather.network.WeatherApiService
 import com.example.weather.repository.Repository
+import com.example.weather.model.DisplayableWeatherData
 
 class FavoriteFragment : Fragment() {
 
@@ -30,6 +37,7 @@ class FavoriteFragment : Fragment() {
         _binding = FragmentFavoriteBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        val myLocationManager = MyLocationManager(requireContext())
         val settingsManager = SettingsManager(requireActivity())
         val favoriteViewModelFactory =
             FavoriteViewModelFactory(
@@ -45,7 +53,12 @@ class FavoriteFragment : Fragment() {
         ).get(FavoriteViewModel::class.java)
         recyclerViewFav = binding.recyclerViewFav
 
-        recyclerAdapterFav = RecyclerAdapterFav()
+        recyclerAdapterFav = RecyclerAdapterFav(){weather->
+            Toast.makeText(requireContext(),"card pressed",Toast.LENGTH_SHORT).show()
+            settingsManager.setLocation("Favorite")
+            myLocationManager.setWeatherObject(weather.locationDescription)
+            findNavController().navigate(R.id.navigation_home)
+        }
         recyclerViewFav.apply {
             adapter = recyclerAdapterFav
             layoutManager = LinearLayoutManager(requireContext()).apply {
@@ -60,6 +73,11 @@ class FavoriteFragment : Fragment() {
 
         binding.floatingActionButton.setOnClickListener {
             //add items to favorite list logic
+            val intent = Intent(requireContext(), MapActivity::class.java)
+            intent.putExtra("type","Favorite")
+            settingsManager.setLocation("Favorite")
+            startActivity(intent)
+            findNavController().navigate(R.id.navigation_home)
         }
 
         return root

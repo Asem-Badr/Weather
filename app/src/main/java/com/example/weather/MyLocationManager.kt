@@ -2,6 +2,7 @@ package com.example.weather
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest.permission.WRITE_SETTINGS
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -27,8 +28,11 @@ class MyLocationManager(val context: Context) {
 
     companion object {
         const val PREFERENCES_NAME = "location_preferences"
-        const val LONGITUDE_KEY = "language"
-        const val LATITUDE_KEY = "temperature_unit"
+        const val LONGITUDE_KEY = "longitude_key"
+        const val LATITUDE_KEY = "latitude_key"
+        const val WEATHER_OBJECT_KEY = "weather"
+        const val GPS_LONG_KEY = "gps_longitude_key"
+        const val GPS_LAT_KEY = "gps_latitude_key"
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -44,8 +48,30 @@ class MyLocationManager(val context: Context) {
         return sharedPreferences.getString(LATITUDE_KEY, "0") ?: "0"
     }
 
+    fun setGpsLongitude(longitude: Double) {
+        sharedPreferences.edit().putString(GPS_LONG_KEY, longitude.toString()).apply()
+    }
+    fun getGpsLongitude(): String {
+        return sharedPreferences.getString(GPS_LONG_KEY, "0") ?: "0"
+    }
+
+    fun setGpsLatitude(latitude: Double) {
+        sharedPreferences.edit().putString(GPS_LAT_KEY, latitude.toString()).apply()
+    }
+    fun getGpsLatitude(): String {
+        return sharedPreferences.getString(GPS_LAT_KEY, "0") ?: "0"
+    }
+
     fun setLatitude(latitude: Double) {
         sharedPreferences.edit().putString(LATITUDE_KEY, latitude.toString()).apply()
+    }
+
+    fun getWeatherObject():String{
+        return sharedPreferences.getString(WEATHER_OBJECT_KEY,"not found") ?:"not found"
+    }
+
+    fun setWeatherObject(weather:String){
+        sharedPreferences.edit().putString(WEATHER_OBJECT_KEY, weather).apply()
     }
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     val My_LOCATION_PERMISSION_ID = 5005

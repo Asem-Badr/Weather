@@ -38,9 +38,7 @@ class HomeFragment : Fragment(), LocationResultCallback {
         super.onStart()
 //        myLocationManager.getActualLocation(requireActivity(), this)
         myLocationManager = MyLocationManager(requireContext())
-//        if(myLocationManager.getGpsLongitude()== "0"){
-//            myLocationManager.getFreshLocation(this)
-//        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -93,12 +91,6 @@ class HomeFragment : Fragment(), LocationResultCallback {
 
         return root
     }
-
-//    override fun onDestroyView() {
-//        super.onDestroyView()
-//        _binding = null
-//    }
-
 
 
     @RequiresApi(Build.VERSION_CODES.O)

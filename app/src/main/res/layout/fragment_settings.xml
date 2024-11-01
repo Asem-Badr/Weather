@@ -50,6 +50,7 @@
                     android:id="@+id/radioButtonEnglish"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/english"
                     android:textColor="@color/vscode_text_secondary" />
 
@@ -57,6 +58,7 @@
                     android:id="@+id/radioButtonArabic"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/arabic"
                     android:textColor="@color/vscode_text_secondary" />
             </RadioGroup>
@@ -104,6 +106,7 @@
                     android:id="@+id/radioButtonCelsius"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/celsius"
                     android:textColor="@color/vscode_text_secondary" />
 
@@ -111,6 +114,7 @@
                     android:id="@+id/radioButtonKelvin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/kelvin"
                     android:textColor="@color/vscode_text_secondary" />
 
@@ -118,6 +122,7 @@
                     android:id="@+id/radioButtonFahrenheit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/fahrenheit"
                     android:textColor="@color/vscode_text_secondary" />
             </RadioGroup>
@@ -165,6 +170,7 @@
                     android:id="@+id/radioButtonGPS"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/gps"
                     android:textColor="@color/vscode_text_secondary" />
 
@@ -172,8 +178,16 @@
                     android:id="@+id/radioButtonMap"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/map"
                     android:textColor="@color/vscode_text_secondary" />
+
+                <Button
+                    android:id="@+id/btnChangeLocation"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/changeLocation"
+                    android:textSize="12sp" />
             </RadioGroup>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -219,16 +233,18 @@
                     android:id="@+id/radioButtonMetersPerSec"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/meters_per_sec"
-                    android:textColor="@color/vscode_text_secondary"/>
+                    android:textColor="@color/vscode_text_secondary" />
 
 
                 <RadioButton
                     android:id="@+id/radioButtonMilesPerHour"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/miles_per_hour"
-                    android:textColor="@color/vscode_text_secondary"/>
+                    android:textColor="@color/vscode_text_secondary" />
             </RadioGroup>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

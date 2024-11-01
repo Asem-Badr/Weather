@@ -3,7 +3,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
@@ -16,15 +15,16 @@ class MapActivity : AppCompatActivity() {
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
     private var currentMarker: Marker? = null // To keep track of the current marker
-
+    private lateinit var btnAction: Button
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val myLocationManager = MyLocationManager(this)
         // Set up the OSMDroid configuration
         Configuration.getInstance().load(this, androidx.preference.PreferenceManager.getDefaultSharedPreferences(this))
-
+        val mapType = intent.extras?.getString("type")
         setContentView(R.layout.activity_map)
+        btnAction = findViewById(R.id.btnAction)
 
         mapView = findViewById(R.id.map)
         mapView.setTileSource(org.osmdroid.tileprovider.tilesource.TileSourceFactory.MAPNIK)
@@ -53,7 +53,7 @@ class MapActivity : AppCompatActivity() {
                     //title = "Pinned Location"
                 }
                 mapView.overlays.add(currentMarker!!)
-                currentMarker?.showInfoWindow() // Show the info window for the new marker
+                //currentMarker?.showInfoWindow() // Show the info window for the new marker
 
                 // Refresh the map to show the new marker
                 mapView.invalidate()
@@ -61,12 +61,16 @@ class MapActivity : AppCompatActivity() {
             false
         }
 
-        // Button to show coordinates
-        findViewById<Button>(R.id.show_coordinates_button).setOnClickListener {
+        btnAction.setOnClickListener {
             //Toast.makeText(this, "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT).show()
             myLocationManager.setLongitude(longitude)
             myLocationManager.setLatitude(latitude)
             finish()
+        }
+        if (mapType == "Favorite"){
+            btnAction.setText("Add to Favorte")
+        }else if (mapType == "Map"){
+            btnAction.setText("show Location Weather")
         }
     }
 

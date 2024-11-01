@@ -22,4 +22,5 @@
     <string name="miles_per_hour">Miles/hour</string>
     <string name="nextFiveDays">Next Five Days:</string>
     <string name="dailyDetails">Daily Details</string>
+    <string name="changeLocation">Change Location</string>
 </resources>

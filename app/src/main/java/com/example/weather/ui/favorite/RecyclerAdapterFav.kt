@@ -25,7 +25,6 @@ class RecyclerAdapterFav(var myListener: (DisplayableWeatherData) -> Unit) :
         val current: DisplayableWeatherData = getItem(position)
         holder.binding.txtCountry.text = current.locationDescription
         holder.binding.cardFav.setOnClickListener{
-            //TODO move to home screen with the correct longitude and latitude
             myListener.invoke(current)
         }
     }

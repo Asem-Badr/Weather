@@ -33,6 +33,12 @@ class SettingsFragment : Fragment() {
         settingsManager = SettingsManager(requireContext())
 
         loadPreferences()
+        binding.btnChangeLocation.setOnClickListener {
+            val intent = Intent(requireContext(), MapActivity::class.java)
+            intent.putExtra("type", "Map")
+            startActivity(intent)
+        }
+        updateChangeLocationButtonVisibility()
 
         binding.languageGroup.setOnCheckedChangeListener { _, checkedId ->
             val selectedLanguage = when (checkedId) {
@@ -107,15 +113,25 @@ class SettingsFragment : Fragment() {
                 else -> "GPS" // default to GPS
             }
             settingsManager.setLocation(selectedLocation)
+            updateChangeLocationButtonVisibility()
             if(selectedLocation == "Map"){
                 val intent = Intent(requireContext(), MapActivity::class.java)
+                intent.putExtra("type","Map")
+                settingsManager.setLocation("Map")
                 startActivity(intent)
                 findNavController().navigate(R.id.navigation_home)
             }
         }
         return root
     }
-
+    private fun updateChangeLocationButtonVisibility() {
+        val selectedLocationId = binding.locationGroup.checkedRadioButtonId
+        binding.btnChangeLocation.visibility = if (selectedLocationId == R.id.radioButtonMap) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
     private fun loadPreferences() {
         val savedLanguage = settingsManager.getLanguage()
         val savedTempUnit = settingsManager.getTemperatureUnit()

@@ -10,7 +10,7 @@ data class DisplayableWeatherData(
     val currentDay: String,
     val currentDate: String,
     val temperature: String,
-    @PrimaryKey val locationDescription: String,
+    @PrimaryKey var locationDescription: String,
     val pressure: String,
     val windSpeed: String,
     val humidity: String,

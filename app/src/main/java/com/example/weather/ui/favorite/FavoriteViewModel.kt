@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.weather.model.DisplayableWeatherData
-import com.example.weather.repository.Repository
+import com.example.weather.repository.IRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class FavoriteViewModel(private val _repo: Repository) : ViewModel() {
+class FavoriteViewModel(private val _repo: IRepository) : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is dashboard Fragment"
@@ -41,7 +41,7 @@ class FavoriteViewModel(private val _repo: Repository) : ViewModel() {
     }
 }
 
-class FavoriteViewModelFactory(private val _repo: Repository) : ViewModelProvider.Factory {
+class FavoriteViewModelFactory(private val _repo: IRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return if (modelClass.isAssignableFrom(FavoriteViewModel::class.java)) {
             FavoriteViewModel(_repo) as T

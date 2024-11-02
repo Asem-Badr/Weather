@@ -20,13 +20,36 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.example.weather.MyLocationManager
+import com.example.weather.SettingsManager
+import com.example.weather.database.LocationsDatabase
+import com.example.weather.network.WeatherApiService
+import com.example.weather.repository.Repository
+import com.example.weather.ui.home.HomeViewModel
+import com.example.weather.ui.home.HomeViewModelFactory
 
 class AlertsFragment : Fragment() {
     private var _binding: FragmentAlertsBinding? = null
     private val binding get() = _binding!!
     var REQUEST_CODE = 5005
+    lateinit var alertsViewModel: AlertsViewModel
+    lateinit var locationManager: MyLocationManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        locationManager = MyLocationManager(requireContext())
+        val settingsManager = SettingsManager(requireActivity())
+        val alertsViewModelFactory =
+            AlertsViewModelFactory(
+                Repository(
+                    WeatherApiService.RetrofitHelper,
+                    LocationsDatabase.getInstance(requireContext()).getLocationsDao(),
+                    settingsManager
+                )
+            )
+        alertsViewModel = ViewModelProvider(
+            requireActivity(),
+            alertsViewModelFactory
+        ).get(AlertsViewModel::class.java)
         createNotificationChannel()
     }
 
@@ -50,7 +73,8 @@ class AlertsFragment : Fragment() {
             )
         }
 
-        val alertsViewModel = ViewModelProvider(this).get(AlertsViewModel::class.java)
+
+
         _binding = FragmentAlertsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
@@ -85,41 +109,59 @@ class AlertsFragment : Fragment() {
     private fun scheduleAlarm(hour: Int, minute: Int) {
         val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(),
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        // Set the time for the alarm
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            if (before(Calendar.getInstance())) {
-                // If the set time is before the current time, schedule it for the next day
-                add(Calendar.DAY_OF_YEAR, 1)
+
+        alertsViewModel.currentWeatherResponse.observe(viewLifecycleOwner) { weather ->
+            val description = weather.weather[0].description
+            val temperature = weather.main.temp
+
+            // Pass weather details in the intent
+            intent.putExtra("weather_description", description)
+            intent.putExtra("temperature", temperature.toString())
+
+            val pendingIntent = PendingIntent.getBroadcast(
+                requireContext(),
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Set the alarm time
+            val calendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
+                set(Calendar.SECOND, 0)
+                if (before(Calendar.getInstance())) add(Calendar.DAY_OF_YEAR, 1)
             }
+
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
         }
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
     }
+
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = "alarm_channel_id"
-            val channelName = "Alarm Notifications"
-            val channelDescription = "Notifications for scheduled alarms"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(channelId, channelName, importance).apply {
-                description = channelDescription
+            alertsViewModel.getCurrentWeather(
+                locationManager.getGpsLatitude().toDouble(),
+                locationManager.getGpsLongitude().toDouble(),
+                "fe475ba8548cc787edbdab799cae490c"
+            )
+            alertsViewModel.currentWeatherResponse.observe(requireActivity()){
+                val channelId = "alarm_channel_id"
+                val channelName = it.name //"Alarm Notifications"
+                val channelDescription = it.weather.get(0).description //"Notifications for scheduled alarms"
+                val importance = NotificationManager.IMPORTANCE_HIGH
+                val channel = NotificationChannel(channelId, channelName, importance).apply {
+                    description = channelDescription
+                }
+                val notificationManager =
+                    requireContext().getSystemService(NotificationManager::class.java)
+                notificationManager.createNotificationChannel(channel)
             }
-            val notificationManager =
-                requireContext().getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+
         }
     }
 }

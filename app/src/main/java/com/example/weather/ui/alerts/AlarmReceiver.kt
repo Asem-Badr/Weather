@@ -14,18 +14,22 @@ import com.example.weather.R
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        // Show notification when the alarm is triggered
-        showNotification(context)
+        // Retrieve weather information from intent
+        val description = intent.getStringExtra("weather_description") ?: "No description available"
+        val temperature = intent.getStringExtra("temperature") ?: "N/A"
+
+        // Show notification with weather details
+        showNotification(context, description, temperature)
     }
 
-    private fun showNotification(context: Context) {
+    private fun showNotification(context: Context, description: String, temperature: String) {
         val notificationId = 1
         val channelId = "alarm_channel_id"
 
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)  // Use a suitable icon
-            .setContentTitle("Alarm Alert")
-            .setContentText("The alarm you set has gone off!")
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle("Current Weather")
+            .setContentText("Weather: $description, Temp: $temperature°")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
@@ -35,9 +39,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Permission not granted, do not proceed with the notification
             return
         }
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 }
+

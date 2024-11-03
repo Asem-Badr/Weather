@@ -1,5 +1,7 @@
 package com.example.weather.ui.home
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -89,7 +91,7 @@ class HomeFragment : Fragment(), LocationResultCallback {
             }
         }
 
-        binding.btnUpdateLocation.setOnClickListener{
+        binding.btnUpdateLocation.setOnClickListener {
             settingsManager.setLocation("GPS")
             myLocationManager.setGpsLongitude(0.0)
             myLocationManager.setGpsLatitude(0.0)
@@ -103,27 +105,36 @@ class HomeFragment : Fragment(), LocationResultCallback {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onLocationResult(latitude: Double, longitude: Double) {
 //        Toast.makeText(requireContext(), "long: ${longitude}, lat:${latitude}", Toast.LENGTH_SHORT) .show()
-        lifecycleScope.launch {
-            var value = homeViewModel.getDisplayableObject(
-                latitude,
-                longitude,
-                "fe475ba8548cc787edbdab799cae490c"
-            )
-            var location_settings = settingsManager.getLocation()
-            if (location_settings == "GPS") {
-                //caching the locations so that it will not fetch new location every time
-                myLocationManager.setGpsLongitude(longitude)
-                myLocationManager.setGpsLatitude(latitude)
-            } else if (location_settings == "Map") {
+        if (isNetworkConnected()) {
+            lifecycleScope.launch {
+                var value = homeViewModel.getDisplayableObject(
+                    latitude,
+                    longitude,
+                    "fe475ba8548cc787edbdab799cae490c"
+                )
+                var location_settings = settingsManager.getLocation()
+                if (location_settings == "GPS") {
+                    //caching the locations so that it will not fetch new location every time
+                    myLocationManager.setGpsLongitude(longitude)
+                    myLocationManager.setGpsLatitude(latitude)
+                } else if (location_settings == "Map") {
 
-            } else if (location_settings == "Favorite") {
-                //homeViewModel.addToFav(value)// update the stored data with new one
-                settingsManager.setLocation("GPS")
-            } else if (location_settings == "NewFavorite") {
-                settingsManager.setLocation("GPS")
-                homeViewModel.addToFav(value)
+                } else if (location_settings == "Favorite") {
+                    //homeViewModel.addToFav(value)// update the stored data with new one
+                    settingsManager.setLocation("GPS")
+                } else if (location_settings == "NewFavorite") {
+                    settingsManager.setLocation("GPS")
+                    homeViewModel.addToFav(value)
+                }
+                updateUi(value)
             }
-            updateUi(value)
+        } else {
+            Toast.makeText(
+                requireContext(),
+                "No internet connection",
+                Toast.LENGTH_SHORT
+            )
+                .show()
         }
 
     }
@@ -162,10 +173,19 @@ class HomeFragment : Fragment(), LocationResultCallback {
         when (locationSetting) {
             "GPS" -> {
                 if (myLocationManager.getGpsLongitude() != "0.0") {
-                    onLocationResult(
-                        myLocationManager.getGpsLatitude().toDouble(),
-                        myLocationManager.getGpsLongitude().toDouble()
-                    )
+                    if (isNetworkConnected()) {
+                        onLocationResult(
+                            myLocationManager.getGpsLatitude().toDouble(),
+                            myLocationManager.getGpsLongitude().toDouble()
+                        )
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "No internet connection",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    }
                 } else {
                     myLocationManager.getActualLocation(
                         requireActivity(),
@@ -174,21 +194,39 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 }
             }
 
-            "Map" -> onLocationResult(
-                myLocationManager.getLatitude().toDouble(),
-                myLocationManager.getLongitude().toDouble()
-            )
+            "Map" -> {
+                if (isNetworkConnected()) {
+                    onLocationResult(
+                        myLocationManager.getLatitude().toDouble(),
+                        myLocationManager.getLongitude().toDouble()
+                    )
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "No internet connection",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
+            }
 
             "Favorite" -> {
                 settingsManager.setLocation("GPS")
                 val weatherKey = myLocationManager.getWeatherObject()
                 var weatherObject = homeViewModel.getLocationByDescription(weatherKey)
                 homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
-                    if(isPastUpdateTime(it.timeStamp)){
+                    if (isPastUpdateTime(it.timeStamp)) {
                         //fetch new data as the stored are old and store the new in database
-                        onLocationResult(it.latitude,it.longitude)
-                    }
-                    else{
+                        if (isNetworkConnected()) {
+                            onLocationResult(it.latitude, it.longitude)
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "No internet connection",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
                         //review the pre existing data
                         updateUi(it)
                     }
@@ -196,10 +234,18 @@ class HomeFragment : Fragment(), LocationResultCallback {
             }
 
             "NewFavorite" -> {
-                onLocationResult(
-                    myLocationManager.getFavoriteLatitude().toDouble(),
-                    myLocationManager.getFavoriteLongitude().toDouble()
-                )
+                if (isNetworkConnected()) {
+                    onLocationResult(
+                        myLocationManager.getFavoriteLatitude().toDouble(),
+                        myLocationManager.getFavoriteLongitude().toDouble()
+                    )
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "No internet connection",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
                 //settingsManager.setLocation("GPS")
             }
         }
@@ -210,5 +256,11 @@ class HomeFragment : Fragment(), LocationResultCallback {
         val threeHoursInMillis = TimeUnit.HOURS.toMillis(3)
         val currentTime = System.currentTimeMillis()
         return currentTime > (givenTimestampInMillis + threeHoursInMillis)
+    }
+
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return connectivityManager.activeNetworkInfo?.isConnectedOrConnecting == true
     }
 }

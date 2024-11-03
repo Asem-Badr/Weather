@@ -13,8 +13,8 @@ class Repository(
     val remote: WeatherApiService.RetrofitHelper,
     val local: Dao,
     val settingsManager: SettingsManager
-) {
-    suspend fun getCurrentWeather(
+) : IRepository {
+    override suspend fun getCurrentWeather(
         lat: Double,
         lon: Double,
         appId: String
@@ -30,7 +30,7 @@ class Repository(
         emit(result)
     }
 
-    suspend fun getFiveDayForecast(
+    override suspend fun getFiveDayForecast(
         lat: Double,
         lon: Double,
         appId: String
@@ -46,18 +46,18 @@ class Repository(
         emit(result)
     }
 
-    fun getFavoriteLocations():Flow<List<DisplayableWeatherData>>{
+    override fun getFavoriteLocations():Flow<List<DisplayableWeatherData>>{
         return local.getFavLocations()
     }
-    suspend fun addToFav(location: DisplayableWeatherData) {
+    override suspend fun addToFav(location: DisplayableWeatherData) {
         local.insert(location)
     }
 
-    suspend fun removeFromFav(location: DisplayableWeatherData) {
+    override suspend fun removeFromFav(location: DisplayableWeatherData) {
         local.delete(location)
     }
 
-    suspend fun searchForWeather(location: String): Flow<DisplayableWeatherData?> {
+    override suspend fun searchForWeather(location: String): Flow<DisplayableWeatherData?> {
         return local.getLocationByDescription(location)
     }
 }

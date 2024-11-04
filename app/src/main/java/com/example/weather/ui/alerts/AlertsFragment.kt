@@ -17,8 +17,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.example.weather.MyLocationManager
 import com.example.weather.SettingsManager
@@ -144,11 +146,18 @@ class AlertsFragment : Fragment() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if(isNetworkConnected()){
             alertsViewModel.getCurrentWeather(
                 locationManager.getGpsLatitude().toDouble(),
                 locationManager.getGpsLongitude().toDouble(),
                 "fe475ba8548cc787edbdab799cae490c"
-            )
+            )} else {
+                Toast.makeText(
+                    requireContext(),
+                    "can't schedule alarms",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             alertsViewModel.currentWeatherResponse.observe(requireActivity()){
                 val channelId = "alarm_channel_id"
                 val channelName = it.name //"Alarm Notifications"
@@ -163,6 +172,11 @@ class AlertsFragment : Fragment() {
             }
 
         }
+    }
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return connectivityManager.activeNetworkInfo?.isConnectedOrConnecting == true
     }
 }
 

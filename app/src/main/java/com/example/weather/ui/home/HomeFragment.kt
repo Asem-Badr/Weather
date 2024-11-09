@@ -218,6 +218,20 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 settingsManager.setLocation("GPS")
                 val weatherKey = myLocationManager.getWeatherObject()
                 var weatherObject = homeViewModel.getLocationByDescription(weatherKey)
+                //check the stateFlow here.
+                
+                lifecycleScope.launch { 
+                    homeViewModel.displayableWeatherResult.collect{ state ->
+                        when (state){
+                            is ApiState.Failure -> Toast.makeText(requireContext(), "can't retrieve", Toast.LENGTH_SHORT)
+                                .show()
+                            ApiState.Loading -> Toast.makeText(requireContext(), "Loading", Toast.LENGTH_SHORT).show()
+                            is ApiState.Success -> updateUi(state.data)
+                        }
+                        
+                    }
+                }
+                
                 homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
                     if (isPastUpdateTime(it.timeStamp)) {
                             onLocationResult(it.latitude, it.longitude)

@@ -49,6 +49,8 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
     private val _displayableWeatherState = MutableStateFlow<ApiState>(ApiState.Loading)
     val displayableWeatherState: StateFlow<ApiState> = _displayableWeatherState
 
+    private val _displayableWeatherResult = MutableStateFlow<ApiState>(ApiState.Loading)
+    val displayableWeatherResult: StateFlow<ApiState> = _displayableWeatherResult
 
     fun getCurrentWeather(lat: Double, lon: Double, apiKey: String) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -67,14 +69,18 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
                 }
         }
     }
-    fun getLocationByDescription(location : String){
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = _repo.searchForWeather(location)
-                .collect{
-                    _favorite_object.postValue(it)
+    fun getLocationByDescription(location: String) {
+        viewModelScope.launch {
+            _repo.searchForWeather(location).collect { result ->
+                _displayableWeatherResult.value = if (result != null) {
+                    ApiState.Success(result)
+                } else {
+                    ApiState.Failure(Exception("Location Not Found"))
                 }
+            }
         }
     }
+
     fun addToFav(location: DisplayableWeatherData){
         viewModelScope.launch(Dispatchers.IO) {
             _repo.addToFav(location)

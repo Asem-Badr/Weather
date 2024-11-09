@@ -4,8 +4,14 @@ plugins {
     id("kotlin-kapt")
 }
 
-val coroutinesVersion = "1.6.0" // Use the latest available version
-
+val coroutinesVersion = "1.7.1"
+val junitVersion = "4.13.2"
+val hamcrestVersion = "1.3"
+val archTestingVersion = "2.1.0"
+val robolectricVersion = "4.6.1"
+val androidXTestExtKotlinRunnerVersion = "1.1.3"
+val androidXTestCoreVersion = "1.5.0"
+val kotlin_version = "1.8.0"
 android {
     namespace = "com.example.weather"
     compileSdk = 34
@@ -73,6 +79,30 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.1.0")
     implementation("org.osmdroid:osmdroid-android:6.1.10")
 
-    testImplementation("androidx.arch.core:core-testing:2.1.0")
+    /**
+     *  Testing dependencies
+     * */
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+
+    testImplementation ("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
+    testImplementation ("org.mockito:mockito-core:4.0.0")
+
+
+
+    testImplementation ("junit:junit:$junitVersion")
+    testImplementation ("org.hamcrest:hamcrest-all:$hamcrestVersion")
+    testImplementation ("androidx.arch.core:core-testing:$archTestingVersion")
+
+    testImplementation ("androidx.test.ext:junit-ktx:$androidXTestExtKotlinRunnerVersion")
+    testImplementation ("androidx.test:core-ktx:$androidXTestCoreVersion")
+    testImplementation ("org.robolectric:robolectric:4.8")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }

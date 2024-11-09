@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -100,6 +101,45 @@ class HomeFragment : Fragment(), LocationResultCallback {
 
         return root
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        lifecycleScope.launch {
+            homeViewModel.displayableWeatherState.collect { state ->
+                when (state) {
+                    is ApiState.Loading -> {
+                        Log.i("TAG", "onViewCreated: loading ")
+                    }
+                    is ApiState.Success -> {
+                        Log.i("TAG", "onViewCreated: Success ")
+                        val displayableData = state.data
+                        val locationSetting = settingsManager.getLocation()
+                        when (locationSetting) {
+                            "GPS" -> {
+                                myLocationManager.setGpsLongitude(displayableData.longitude)
+                                myLocationManager.setGpsLatitude(displayableData.latitude)
+                            }
+                            "Favorite" -> {
+                                //settingsManager.setLocation("GPS")
+                            }
+                            "NewFavorite" -> {
+                                //settingsManager.setLocation("GPS")
+                                homeViewModel.addToFav(displayableData)
+                            }
+                        }
+
+                        // Update UI with the fetched weather data
+                        updateUi(displayableData)
+                    }
+                    is ApiState.Failure -> {
+//                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(requireContext(), "Failed to load data: ${state.error}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -107,26 +147,11 @@ class HomeFragment : Fragment(), LocationResultCallback {
 //        Toast.makeText(requireContext(), "long: ${longitude}, lat:${latitude}", Toast.LENGTH_SHORT) .show()
         if (isNetworkConnected()) {
             lifecycleScope.launch {
-                var value = homeViewModel.getDisplayableObject(
+                homeViewModel.getDisplayableObject(
                     latitude,
                     longitude,
-                    "fe475ba8548cc787edbdab799cae490c"
+                    apiKey = "fe475ba8548cc787edbdab799cae490c"
                 )
-                var location_settings = settingsManager.getLocation()
-                if (location_settings == "GPS") {
-                    //caching the locations so that it will not fetch new location every time
-                    myLocationManager.setGpsLongitude(longitude)
-                    myLocationManager.setGpsLatitude(latitude)
-                } else if (location_settings == "Map") {
-
-                } else if (location_settings == "Favorite") {
-                    //homeViewModel.addToFav(value)// update the stored data with new one
-                    settingsManager.setLocation("GPS")
-                } else if (location_settings == "NewFavorite") {
-                    settingsManager.setLocation("GPS")
-                    homeViewModel.addToFav(value)
-                }
-                updateUi(value)
             }
         } else {
             Toast.makeText(
@@ -164,28 +189,17 @@ class HomeFragment : Fragment(), LocationResultCallback {
             recyclerAdapterDailyData.submitList(dto.dailyForecast)
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun refreshData() {
-        myLocationManager = MyLocationManager(requireContext())
         val locationSetting = settingsManager.getLocation()
 
         when (locationSetting) {
             "GPS" -> {
                 if (myLocationManager.getGpsLongitude() != "0.0") {
-                    if (isNetworkConnected()) {
                         onLocationResult(
                             myLocationManager.getGpsLatitude().toDouble(),
                             myLocationManager.getGpsLongitude().toDouble()
                         )
-                    } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "No internet connection",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                    }
                 } else {
                     myLocationManager.getActualLocation(
                         requireActivity(),
@@ -193,21 +207,11 @@ class HomeFragment : Fragment(), LocationResultCallback {
                     )  // Only fetch fresh GPS if needed
                 }
             }
-
             "Map" -> {
-                if (isNetworkConnected()) {
                     onLocationResult(
                         myLocationManager.getLatitude().toDouble(),
                         myLocationManager.getLongitude().toDouble()
                     )
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "No internet connection",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
-                }
             }
 
             "Favorite" -> {
@@ -216,37 +220,17 @@ class HomeFragment : Fragment(), LocationResultCallback {
                 var weatherObject = homeViewModel.getLocationByDescription(weatherKey)
                 homeViewModel.favoriteObject.observe(viewLifecycleOwner) {
                     if (isPastUpdateTime(it.timeStamp)) {
-                        //fetch new data as the stored are old and store the new in database
-                        if (isNetworkConnected()) {
                             onLocationResult(it.latitude, it.longitude)
-                        } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "No internet connection",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
                     } else {
-                        //review the pre existing data
                         updateUi(it)
                     }
                 }
             }
-
             "NewFavorite" -> {
-                if (isNetworkConnected()) {
                     onLocationResult(
                         myLocationManager.getFavoriteLatitude().toDouble(),
                         myLocationManager.getFavoriteLongitude().toDouble()
                     )
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "No internet connection",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                //settingsManager.setLocation("GPS")
             }
         }
     }

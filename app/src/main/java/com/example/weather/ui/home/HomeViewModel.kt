@@ -18,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -43,6 +45,10 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
         value = "This is home Fragment"
     }
     val text: LiveData<String> = _text
+
+    private val _displayableWeatherState = MutableStateFlow<ApiState>(ApiState.Loading)
+    val displayableWeatherState: StateFlow<ApiState> = _displayableWeatherState
+
 
     fun getCurrentWeather(lat: Double, lon: Double, apiKey: String) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -75,21 +81,22 @@ class HomeViewModel(private val _repo: Repository) : ViewModel() {
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun getDisplayableObject(lat: Double, lon: Double, apiKey: String): DisplayableWeatherData =
-        coroutineScope {
-            val currentWeatherDeferred = async {
-                _repo.getCurrentWeather(lat, lon, apiKey).first()
+    fun getDisplayableObject(lat: Double, lon: Double, apiKey: String) {
+        viewModelScope.launch {
+            _displayableWeatherState.value = ApiState.Loading  // Set loading state
+            try {
+                val currentWeather = async { _repo.getCurrentWeather(lat, lon, apiKey).first() }
+                val forecastData = async { _repo.getFiveDayForecast(lat, lon, apiKey).first() }
+
+                val displayableData = constructDisplayableWeatherData(currentWeather.await(), forecastData.await())
+
+                _displayableWeatherState.value = ApiState.Success(displayableData)
+            } catch (e: Throwable) {
+                _displayableWeatherState.value = ApiState.Failure(e)
             }
-
-            val forecastDeferred = async {
-                _repo.getFiveDayForecast(lat, lon, apiKey).first()
-            }
-
-            val currentWeather = currentWeatherDeferred.await()
-            val forecastResponse = forecastDeferred.await()
-            constructDisplayableWeatherData(currentWeather,forecastResponse)
-
         }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun constructDisplayableWeatherData(currentWeather: CurrentWeatherResponse, forecastResponse : ForecastResponse):DisplayableWeatherData{
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
@@ -162,4 +169,10 @@ class HomeViewModelFactory(private val _repo: Repository) : ViewModelProvider.Fa
             throw IllegalArgumentException("ViewModel class not found")
         }
     }
+}
+
+sealed class ApiState {
+    object Loading : ApiState()
+    data class Success(val data: DisplayableWeatherData) : ApiState()
+    data class Failure(val error: Throwable) : ApiState()
 }
